@@ -32,8 +32,9 @@ unsigned int rcv_char_cnt = 0;
 unsigned char rcv_char_flag = 0;
 
 TIM_HandleTypeDef    TimHandle;
-SPI_HandleTypeDef    SpiHandle1;
-SPI_HandleTypeDef    SpiHandle2;
+/* SPI handler declaration */
+SPI_HandleTypeDef SpiHandle;
+SPI_HandleTypeDef SpiHandle2;
 UART_HandleTypeDef   UartHandle;
 
 static GPIO_InitTypeDef  GPIO_InitStruct;
@@ -42,45 +43,36 @@ TIM_HandleTypeDef    TimHandle_PWM;
 
 
 /*---------------------------------SPI---------------------------------------*/
-enum {
-	TRANSFER_WAIT,
-	TRANSFER_COMPLETE,
-	TRANSFER_ERROR
-};
-/* Buffer used for transmission */
-uint8_t aTxBuffer[] = "****SPI - Two Boards communication based on DMA **** SPI Message ******** SPI Message ******** SPI Message ****";
-
-/* Buffer used for reception */
-uint8_t aRxBuffer[BUFFERSIZE];
-
-/* transfer state */
-__IO uint32_t wTransferState = TRANSFER_WAIT;
 
 void init_spi(void)
 {
-  SpiHandle1.Instance               = SPIx_1;
-  SpiHandle1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
-  SpiHandle1.Init.Direction         = SPI_DIRECTION_2LINES;
-  SpiHandle1.Init.CLKPhase          = SPI_PHASE_1EDGE;
-  SpiHandle1.Init.CLKPolarity       = SPI_POLARITY_LOW;
-  SpiHandle1.Init.DataSize          = SPI_DATASIZE_8BIT;
-  SpiHandle1.Init.FirstBit          = SPI_FIRSTBIT_MSB;
-  SpiHandle1.Init.TIMode            = SPI_TIMODE_DISABLE;
-  SpiHandle1.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
-  SpiHandle1.Init.CRCPolynomial     = 7;
-  SpiHandle1.Init.CRCLength         = SPI_CRC_LENGTH_8BIT;
-  SpiHandle1.Init.NSS               = SPI_NSS_SOFT;
-  SpiHandle1.Init.NSSPMode          = SPI_NSS_PULSE_DISABLE;
-  SpiHandle1.Init.Mode = SPI_MODE_MASTER;
 
-  if(HAL_SPI_Init(&SpiHandle1) == HAL_OK)
+  /* Set the SPI parameters */
+  SpiHandle.Instance               = SPIx;
+  SpiHandle.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
+  SpiHandle.Init.Direction         = SPI_DIRECTION_2LINES;
+  SpiHandle.Init.CLKPhase          = SPI_PHASE_1EDGE;
+  SpiHandle.Init.CLKPolarity       = SPI_POLARITY_LOW;
+  SpiHandle.Init.DataSize          = SPI_DATASIZE_8BIT;
+  SpiHandle.Init.FirstBit          = SPI_FIRSTBIT_MSB;
+  SpiHandle.Init.TIMode            = SPI_TIMODE_DISABLE;
+  SpiHandle.Init.CRCCalculation    = SPI_CRCCALCULATION_DISABLE;
+  SpiHandle.Init.CRCPolynomial     = 7;
+  SpiHandle.Init.CRCLength         = SPI_CRC_LENGTH_8BIT;
+  SpiHandle.Init.NSS               = SPI_NSS_SOFT;
+  SpiHandle.Init.NSSPMode          = SPI_NSS_PULSE_DISABLE;
+
+  SpiHandle.Init.Mode = SPI_MODE_MASTER;
+
+
+  if(HAL_SPI_Init(&SpiHandle) != HAL_OK)
   {
     /* Initialization Error */
     Error_Handler();
   }
-	
-	SpiHandle2.Instance               = SPIx_2;
-  SpiHandle2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_32;
+	/* Set the SPI parameters */
+  SpiHandle2.Instance               = SPIx_2;
+  SpiHandle2.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_256;
   SpiHandle2.Init.Direction         = SPI_DIRECTION_2LINES;
   SpiHandle2.Init.CLKPhase          = SPI_PHASE_1EDGE;
   SpiHandle2.Init.CLKPolarity       = SPI_POLARITY_LOW;
@@ -92,14 +84,15 @@ void init_spi(void)
   SpiHandle2.Init.CRCLength         = SPI_CRC_LENGTH_8BIT;
   SpiHandle2.Init.NSS               = SPI_NSS_SOFT;
   SpiHandle2.Init.NSSPMode          = SPI_NSS_PULSE_DISABLE;
+
   SpiHandle2.Init.Mode = SPI_MODE_MASTER;
 
-  if(HAL_SPI_Init(&SpiHandle2) == HAL_OK)
+
+  if(HAL_SPI_Init(&SpiHandle2) != HAL_OK)
   {
     /* Initialization Error */
     Error_Handler();
   }
-
 }
 /***********************************************************
 Function: Initialize SPI 0 to send one char data.
@@ -112,22 +105,7 @@ Description: SPI 0 can send max 16BIT data one time.
 unsigned char SPI1_SendDate(unsigned char date)
 {
 	uint8_t tmp = 0;
-  switch(HAL_SPI_TransmitReceive_DMA(&SpiHandle1, (uint8_t*)&date, (uint8_t *)&tmp, 1))
-  {
-    case HAL_OK:
-	    printf("HAL_SPI_TransmitReceive HAL_OK\r\n");
-      break;
-
-    case HAL_TIMEOUT:
-      printf("HAL_SPI_TransmitReceive HAL_TIMEOUT\r\n");
-      break;
-
-    case HAL_ERROR:
-      printf("HAL_SPI_TransmitReceive HAL_ERROR\r\n");
-      break;
-    default:
-      break;
-  }
+	HAL_SPI_TransmitReceive(&SpiHandle, (uint8_t*)&date, (uint8_t *)&tmp, 1, 5000);
 	return tmp;
 }
 
@@ -142,33 +120,8 @@ Description: SPI 1 can send max 16BIT data one time.
 unsigned char SPI2_SendDate(unsigned char date)
 {
 	uint8_t tmp = 0;
-  switch(HAL_SPI_TransmitReceive_DMA(&SpiHandle2, (uint8_t*)&date, (uint8_t *)&tmp, 1))
-  {
-    case HAL_OK:
-	    printf("HAL_SPI_TransmitReceive HAL_OK\r\n");
-      break;
-
-    case HAL_TIMEOUT:
-      printf("HAL_SPI_TransmitReceive HAL_TIMEOUT\r\n");
-      break;
-
-    case HAL_ERROR:
-      printf("HAL_SPI_TransmitReceive HAL_ERROR\r\n");
-      break;
-    default:
-      break;
-  }
+  HAL_SPI_TransmitReceive(&SpiHandle2, (uint8_t*)&date, (uint8_t *)&tmp, 1, 5000);
 	return tmp;
-}
-
-void HAL_SPI_TxRxCpltCallback(SPI_HandleTypeDef *hspi)
-{
-
-}
-
-void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
-{
-  wTransferState = TRANSFER_ERROR;
 }
 /*-------------------------------------------------------------------------------*/
 

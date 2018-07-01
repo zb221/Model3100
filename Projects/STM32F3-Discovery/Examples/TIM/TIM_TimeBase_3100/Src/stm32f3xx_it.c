@@ -54,8 +54,6 @@
 /* Private variables ---------------------------------------------------------*/
 extern TIM_HandleTypeDef    TimHandle;
 extern TIM_HandleTypeDef    TimHandle_PWM;
-extern SPI_HandleTypeDef    SpiHandle1;
-extern SPI_HandleTypeDef    SpiHandle2;
 extern UART_HandleTypeDef   UartHandle;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
@@ -180,31 +178,6 @@ void TIMx_IRQHandler(void)
   HAL_TIM_IRQHandler(&TimHandle);
 }
 
-/******************************************************************************/
-/*                 STM32F3xx Peripherals Interrupt Handlers                   */
-/*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */
-/*  available peripheral interrupt handler's name please refer to the startup */
-/*  file (startup_stm32f3xx.s).                                               */
-/******************************************************************************/
-/**
-  * @brief  This function handles DMA Rx interrupt request.
-  * @param  None
-  * @retval None
-  */
-void SPIx_DMA_RX_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(SpiHandle1.hdmarx);
-}
-
-/**
-  * @brief  This function handles DMA Tx interrupt request.
-  * @param  None
-  * @retval None
-  */
-void SPI2_DMA_TX_IRQHandler(void)
-{
-  HAL_DMA_IRQHandler(SpiHandle2.hdmatx);
-}
 /**
   * @}
   */ 

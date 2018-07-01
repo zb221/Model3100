@@ -12,7 +12,6 @@
 
 
 
-
 void init_variables(void)
 {
   normal_model = 0;
@@ -25,7 +24,7 @@ void init_peripherals(void)
 	AD7738_CS_INIT();
 	init_PWM();
   init_timer();
-//	init_spi();
+	init_spi();
 }
 
 int main(void)
@@ -37,14 +36,21 @@ int main(void)
 	init_peripherals();
 	init_variables();
 
-	
+
+  /* Infinite loop */
   while (1)
   {
-  	if (normal_model == 2){
-			normal_model = 0;
-			printf("Test OK,waitting......,conter=%d\r\n",conter++);
-		}
-	}
+		ADC7738_acquisition(1);
+		SPI2_SendDate(0x12);
+		
+  }	
+//  while (1)
+//  {
+//  	if (normal_model == 1){
+//			normal_model = 0;
+//			printf("Test OK,waitting......,conter=%d\r\n",conter++);
+//		}
+//	}
 
 
 }
